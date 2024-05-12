@@ -106,11 +106,11 @@
   loop: "{{ file_info.results }}"
   when: item.stat.exists
 
-# - name: copy binary files like promtool and Prometheus
-#   command: mv {{ item.src }} {{ item.dest }}
-#   with_items:
-#     - { src: /tmp/prometheus-2.52.0.linux-amd64/prometheus, dest: /usr/local/bin/ }
-#     - { src: /tmp/prometheus-2.52.0.linux-amd64/promtool, dest: /usr/local/bin/ }
+- name: copy binary files like promtool and Prometheus
+  command: mv {{ item.src }} {{ item.dest }}
+  with_items:
+    - { src: /tmp/prometheus-2.52.0.linux-amd64/prometheus, dest: /usr/local/bin/ }
+    - { src: /tmp/prometheus-2.52.0.linux-amd64/promtool, dest: /usr/local/bin/ }
 
 - name: create the service file to be able to restart the Prometheus service
   copy:
