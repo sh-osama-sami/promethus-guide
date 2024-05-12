@@ -20,15 +20,31 @@ Before you begin, ensure you have the following prerequisites:
 
 1. I have written all the steps in an ansible file (to automate the execution of these configurations )
 2. Then hit the instance ip on port 9090 (ensure it is allowed in the security group)
-  - ![Screenshot from 2024-05-12 03-29-43](https://github.com/sh-osama-sami/promethus-guide/assets/85364511/7f6cea1d-e3a9-41d4-a560-bf31ec040b38)
+  - ![Screenshot from 2024-05-12 03-29-43](https://github.com/sh-osama-sami/promethus-guide/assets/85364511/7f6cea1d-e3a9-41d4-a560-bf31ec040b38)\
+3. To allow /metrics on the prometheus service
+  - edit the file in /etc/prometheus/prometheus.yaml
 
 
 ## 2. Installing Node-Exporter as a Service
 
-1. Download Node-Exporter from the official GitHub repository: [Node-Exporter GitHub](https://github.com/prometheus/node_exporter).
-2. Extract the downloaded archive to a location on your server.
-3. Navigate to the Node-Exporter directory.
-4. Run Node-Exporter as a service using systemd or another service manager.
+1. Add ansible instructions to install node exporter
+2. Then hit the instance on port 9100
+  - ![Screenshot from 2024-05-12 20-45-50](https://github.com/sh-osama-sami/promethus-guide/assets/85364511/643392d2-5675-4cad-886d-3d4c03320a29)
+3. Add localhost as a target to display it on the dashboard
+  - edit the file in **/etc/prometheus/prometheus.yaml**
+  - add a new job
+    - ```yaml
+        - job_name: 'node_exporter'
+          static_configs:
+          - targets: ['localhost:9100']
+      ```
+  - restart the service for the changes to take effect 
+    - ```bash
+        sudo systemctl restart prometheus
+      ```
+  - ![image](https://github.com/sh-osama-sami/promethus-guide/assets/85364511/dc33c42d-ebe6-4875-80b5-f943cf23bb95)
+
+3. Add extra layer of security 
 
 ## 3. Running CAdvisor Container
 
