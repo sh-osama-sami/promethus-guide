@@ -1,4 +1,4 @@
-# promethus-guide
+# promethus-setup
 
 # Prometheus, Node-Exporter, CAdvisor, Prom-Client, Alert-Manager, and Grafana Setup Guide
 
