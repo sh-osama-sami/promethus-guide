@@ -31,7 +31,7 @@ Before you begin, ensure you have the following prerequisites:
 2. Then hit the instance on port 9100
   - ![Screenshot from 2024-05-12 20-45-50](https://github.com/sh-osama-sami/promethus-guide/assets/85364511/643392d2-5675-4cad-886d-3d4c03320a29)
 3. Add localhost as a target to display it on the dashboard
-  - edit the file in **/etc/prometheus/prometheus.yaml**
+  - edit the file in `/etc/prometheus/prometheus.yaml`
   - add a new job
     - ```yaml
         - job_name: 'node_exporter'
