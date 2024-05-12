@@ -40,15 +40,15 @@
     - gnupg
     - lsb-release
 
-# - name: Download Docker GPG key
-#   get_url:
-#     url: https://download.docker.com/linux/ubuntu/gpg
-#     dest: /tmp/docker-archive-keyring.gpg
+- name: Download Docker GPG key
+  get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /tmp/docker-archive-keyring.gpg
 
-# - name: Add Docker GPG key
-#   command: gpg --dearmor /tmp/docker-archive-keyring.gpg
-#   args:
-#     chdir: /usr/share/keyrings
+- name: Add Docker GPG key
+  command: gpg --dearmor /tmp/docker-archive-keyring.gpg
+  args:
+    chdir: /usr/share/keyrings
 
 
 
