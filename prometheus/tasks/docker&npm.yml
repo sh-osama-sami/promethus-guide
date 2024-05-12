@@ -1,0 +1,77 @@
+# tasks to install docker and npm
+# 1.1 Install Docker
+
+# Docker instalation:
+
+# sudo apt-get update
+
+# sudo apt-get install \
+#     ca-certificates \
+#     curl \
+#     gnupg \
+#     lsb-release
+
+# curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+# echo \
+#   "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+#   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# sudo apt-get update
+
+# sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+# 1.2 Install nodeJs
+
+# sudo apt install nodejs
+# sudo apt install npm
+
+- name: update apt
+  apt:
+    update_cache: yes
+
+- name: Install Docker
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - ca-certificates
+    - curl
+    - gnupg
+    - lsb-release
+
+# - name: Download Docker GPG key
+#   get_url:
+#     url: https://download.docker.com/linux/ubuntu/gpg
+#     dest: /tmp/docker-archive-keyring.gpg
+
+# - name: Add Docker GPG key
+#   command: gpg --dearmor /tmp/docker-archive-keyring.gpg
+#   args:
+#     chdir: /usr/share/keyrings
+
+
+
+- name: Add Docker repository
+  shell: echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+- name: Install Docker
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    - docker-compose-plugin
+
+- name: Install nodeJs
+  apt:
+    name: nodejs
+    state: present
+
+- name: Install npm 
+  npm:
+    name: npm 
+    path: /home/ubuntu
+    state: present

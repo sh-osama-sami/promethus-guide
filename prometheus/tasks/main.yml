@@ -1,0 +1,8 @@
+---
+- name: Include docker&npm.yml
+  include_tasks: docker&npm.yml
+
+- name: Include prometheus.yml
+  include_tasks: prometheus.yml
+
+

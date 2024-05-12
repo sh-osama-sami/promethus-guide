@@ -1,0 +1,3 @@
+---
+# vars file for prometheus
+ansible_python_interpreter: /usr/bin/python3
