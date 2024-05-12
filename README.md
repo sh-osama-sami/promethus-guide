@@ -44,33 +44,49 @@ Before you begin, ensure you have the following prerequisites:
       ```
   - ![image](https://github.com/sh-osama-sami/promethus-guide/assets/85364511/dc33c42d-ebe6-4875-80b5-f943cf23bb95)
 
-3. Add extra layer of security 
+## 3. Add extra layer of security 
+  - we need to configure a self signed public certificate and a private key at the node_exporter and enable prometheus to use this public certificate
+    when sending requests to the node exporter this way will make communication between prometheus and node exporter secure (https)
+  - The ansible of node exporter has the configuration for :
+    - the creation of the public certificate
+    - the creation of the private key
+    - moving them to the node exporter path and granting the required permissions `/etc/node_exporter/`
+    - hashing passwords 
+    - adding autherised users with their hashed passwords to the `confi.yaml` 
+    - attaching the certificate and the key to the service using a `config.yaml` file
+  - for prometheus :
+    - attaching the certificate and the credintials of the users in the `/etc/prometheus/prometheus.yaml` file (config file of prometheus)
+  - the final result should look like this
+    - ![image](https://github.com/sh-osama-sami/promethus-guide/assets/85364511/53107610-ac75-4a82-85f0-7ebcd9d204be)
+    - here the prometheus is sending **https** requests to the node exporter with the username and password and the node exporter authenticate the password
+    - and send https responses to prometheus 
+      
 
-## 3. Running CAdvisor Container
+## 4. Running CAdvisor Container
 
 1. Install Docker on your server if not already installed.
 2. Pull the CAdvisor Docker image: `docker pull google/cadvisor`.
 3. Run the CAdvisor container: `docker run -d --name cadvisor --privileged -p 8080:8080 google/cadvisor:latest`.
 
-## 4. Using Prom-Client for Node.js Code
+## 5. Using Prom-Client for Node.js Code
 
 1. Install prom-client npm package in your Node.js application: `npm install prom-client`.
 2. Include prom-client in your Node.js application code and start instrumenting your code with Prometheus metrics.
 
-## 5. Configuring Rules in Prometheus
+## 6. Configuring Rules in Prometheus
 
 1. Define alerting rules in the `prometheus.yml` configuration file.
 2. Make sure to specify the alerting rules file in the Prometheus configuration.
 3. Reload or restart Prometheus for the changes to take effect.
 
-## 6. Installing and Configuring Alert-Manager
+## 7. Installing and Configuring Alert-Manager
 
 1. Download Alert-Manager from the official website: [Alert-Manager Downloads](https://prometheus.io/download/).
 2. Extract the downloaded archive to a location on your server.
 3. Modify the `alertmanager.yml` configuration file as per your requirements.
 4. Run Alert-Manager as a service using systemd or another service manager.
 
-## 7. Installing Grafana
+## 8. Installing Grafana
 
 1. Download Grafana from the official website: [Grafana Downloads](https://grafana.com/grafana/download).
 2. Extract the downloaded archive to a location on your server.
