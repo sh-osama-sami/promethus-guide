@@ -1,0 +1,131 @@
+- name: add Node_Exporter user with no shell
+  user:
+    name: node_exporter
+    shell: /bin/false
+    createhome: no
+
+- name: create Node_Exporter configuration libraries directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "{{ node_exporter_config_dir }}"
+    - "/var/lib/node_exporter"
+
+- name: give ownership to Node_Exporter of its library directory
+  file:
+    path: "/var/lib/node_exporter"
+    owner: node_exporter
+    group: node_exporter
+
+- name: download Node_Exporter installation directory
+  get_url:
+    url: "{{ node_exporter_download_url }}"
+    dest: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+
+- name: extract Node_Exporter files
+  unarchive:
+    src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+    dest: "/tmp/"
+    remote_src: yes
+
+- name: copy Node_Exporter binary files and give it permission
+  copy:
+    src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter"
+    dest: "{{ node_exporter_install_dir }}"
+    mode: 0755
+
+- name: create Node_Exporter service file
+  copy:
+    src: "{{ node_exporter_service_src }}"
+    dest: "/etc/systemd/system/"
+    mode: 0644
+
+- name: start and enable Node_Exporter service
+  systemd:
+    name: node_exporter
+    enabled: yes
+    state: started
+
+- name: Generate self-signed private key for node_exporter
+  openssl_privatekey:
+    path: "{{ node_exporter_config_dir }}/node_exporter.key"
+    size: 2048
+    passphrase: "mysecretpassword"
+    cipher: aes256
+    type: RSA
+    state: present
+
+- name: generate self signed certificate with its key with the name of node_exporter
+  openssl_certificate:
+    path: "{{ node_exporter_config_dir }}/node_exporter.crt"
+    privatekey_path: "{{ node_exporter_config_dir }}/node_exporter.key"
+    privatekey_passphrase: "mysecretpassword"
+    subject_alt_name: "DNS:localhost"
+    key_usage:
+      - "digitalSignature"
+      - "keyEncipherment"
+      - "dataEncipherment"
+    extended_key_usage:
+      - "serverAuth"
+    provider: selfsigned
+    state: present
+
+- name: configure node exporter config to enable HTTPS protocol
+  copy:
+    src: "../../required_files/config.yml"
+    dest: "{{ node_exporter_config_dir }}"
+    mode: 0644
+
+- name: change permission of the {{ node_exporter_config_dir }} directory
+  file:
+    path: "{{ node_exporter_config_dir }}"
+    owner: node_exporter
+    group: node_exporter
+
+- name: edit the Node_Exporter Service File to be able to restart the Node_Exporter service
+  copy:
+    src: "../../required_files/node_exporter.service"
+    dest: "/etc/systemd/system/"
+    mode: 0644
+  notify: 
+    - Reload systemd 
+    - restart Node_Exporter service
+
+- name: copy node_exporter.crt to /etc/prometheus/
+  copy:
+    src: "{{ node_exporter_config_dir }}/node_exporter.crt"
+    dest: "{{ prometheus_config_file | dirname }}"
+    mode: 0644
+
+- name: override the prometheus config file with certificate, username, password
+  copy:
+    src: "{{ prometheus_src_config_file }}"
+    dest: "{{ prometheus_config_file }}"
+    mode: 0644
+  notify: 
+    - restart Prometheus service
+
+
+- name: update apt
+  apt:
+    update_cache: yes
+
+- name: install apache2-utils
+  apt:
+    name: apache2-utils
+    state: present
+
+- name: generate hashed password from a custom password you want
+  shell: echo "prometheus" | htpasswd -nBC 10 -i '' | tr -d ':\n'; echo
+  register: hashed_password
+
+- name: add the lines marked with + from Node_Exporter Config File with Authentication Config
+  lineinfile:
+    path: "{{ node_exporter_config_dir }}/config.yml"
+    line: "{{ item }}"
+  with_items:
+    - "basic_auth_users:"
+    - "  prometheus: '{{ hashed_password.stdout }}'"
+  notify: restart Node_Exporter service
+

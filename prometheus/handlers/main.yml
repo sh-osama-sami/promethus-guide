@@ -1,2 +1,21 @@
 ---
 # handlers file for prometheus
+- name: Reload apt cache
+  apt:
+    update_cache: yes 
+
+- name: Reload systemd
+  systemd:
+    daemon_reload: yes
+
+- name: restart Node_Exporter service
+  systemd:
+    name: node_exporter
+    state: restarted
+    enabled: yes
+
+- name: restart Prometheus service
+  systemd:
+    name: prometheus
+    state: restarted
+    enabled: yes

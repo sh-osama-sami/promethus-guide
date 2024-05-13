@@ -1,66 +1,4 @@
----
-# tasks to install git, go, and prometheus
-# 1.1 Installing prometheus as a service steps
 
-#         add Prometheus user with no shell:
-
-# sudo useradd --no-create-home --shell /bin/false prometheus
-
-#         create Prometheus configuration libraries directories:
-
-# sudo mkdir /etc/prometheus
-# sudo mkdir /var/lib/prometheus
-
-#         give the ownership to Prometheus to its library directory:
-
-# sudo chown prometheus:prometheus /var/lib/prometheus
-
-#         download Prometheus instalation directory:
-
-# cd /tmp/
-
-# wget https://github.com/prometheus/prometheus/releases/download/v2.52.0/prometheus-2.52.0.linux-amd64.tar.gz
-
-#         extraxt files:
-
-# tar -xvf prometheus-2.52.0.linux-amd64.tar.gz
-
-# cd prometheus-2.52.0.linux-amd64
-
-# ls
-
-#         copy files to their quilivant configuration directory:
-
-# sudo mv console* /etc/prometheus
-
-# sudo mv prometheus.yml /etc/prometheus
-
-# sudo chown -R prometheus:prometheus /etc/prometheus
-
-#         copy binary files like promtool and Prometheus:
-
-# sudo mv prometheus /usr/local/bin/
-# sudo mv promtool /usr/local/bin/
-# sudo chown prometheus:prometheus /usr/local/bin/prometheus
-# sudo chown prometheus:prometheus /usr/local/bin/promtool
-
-#         finally create the service file to be able to restart the Prometheus service:
-
-# sudo vi /etc/systemd/system/prometheus.service
-
-#     go to this file Prometheus service File
-
-#         finally start and enable Prometheus service:
-
-# sudo systemctl daemon-reload
-
-# sudo systemctl start prometheus
-
-# sudo systemctl status prometheus
-
-# sudo systemctl enable prometheus
-
-# The Prometheus listens on HTTP port 9090 by default.
 
 - name: add Prometheus user with no shell
   user:
@@ -73,32 +11,32 @@
     path: "{{ item }}"
     state: directory
   with_items:
-    - /etc/prometheus
-    - /var/lib/prometheus
-    
-- name: give the ownership to Prometheus to its library directory
+    - "{{ prometheus_config_dir }}"
+    - "{{ prometheus_data_dir }}"
+
+- name: give ownership to Prometheus of its library directory
   file:
-    path: /var/lib/prometheus
+    path: "{{ prometheus_data_dir }}"
     owner: prometheus
     group: prometheus
 
-- name: download Prometheus instalation directory
+- name: download Prometheus installation directory
   get_url:
-    url: https://github.com/prometheus/prometheus/releases/download/v2.52.0/prometheus-2.52.0.linux-amd64.tar.gz
-    dest: /tmp/prometheus-2.52.0.linux-amd64.tar.gz
+    url: "{{ prometheus_download_url }}"
+    dest: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
 
-- name: extraxt files
+- name: extract files
   unarchive:
-    src: /tmp/prometheus-2.52.0.linux-amd64.tar.gz
-    dest: /tmp/
+    src: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
+    dest: "/tmp/"
     remote_src: yes
 
 - name: Check if files exist
   stat:
     path: "{{ item.src }}"
   loop:
-    - { src: "/tmp/prometheus-2.52.0.linux-amd64/console*", dest: "/etc/prometheus" }
-    - { src: "/tmp/prometheus-2.52.0.linux-amd64/prometheus.yml", dest: "/etc/prometheus" }
+    - { src: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64/console*", dest: "{{ prometheus_config_dir }}" }
+    - { src: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64/prometheus.yml", dest: "{{ prometheus_config_dir }}" }
   register: file_info
 
 - name: Move files if they exist
@@ -109,18 +47,20 @@
 - name: copy binary files like promtool and Prometheus
   command: mv {{ item.src }} {{ item.dest }}
   with_items:
-    - { src: /tmp/prometheus-2.52.0.linux-amd64/prometheus, dest: /usr/local/bin/ }
-    - { src: /tmp/prometheus-2.52.0.linux-amd64/promtool, dest: /usr/local/bin/ }
+    - { src: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64/prometheus", dest: "{{ prometheus_install_dir }}" }
+    - { src: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64/promtool", dest: "{{ prometheus_install_dir }}" }
 
 - name: create the service file to be able to restart the Prometheus service
   copy:
-    src: /home/sherry/Downloads/prometheus.service
-    dest: /etc/systemd/system/prometheus.service
-
-
+    src: "{{ prometheus_service_src }}"
+    dest: "{{ prometheus_service_dest }}"
+  notify: Reload systemd
 
 - name: start and enable Prometheus service
   systemd:
     name: prometheus
     state: started
     enabled: yes
+
+
+

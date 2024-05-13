@@ -1,3 +1,6 @@
 ---
 # vars file for prometheus
-ansible_python_interpreter: /usr/bin/python3
+include_vars: 
+  - node_exporter_vars.yaml
+  - prometheus_vars.yaml
+  - docker_vars.yaml

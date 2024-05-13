@@ -2,9 +2,6 @@
   remote_user: ubuntu
   become: true
   gather_facts: true
-  collections:
-    - ansible.posix
-
   roles:
     - prometheus
 
